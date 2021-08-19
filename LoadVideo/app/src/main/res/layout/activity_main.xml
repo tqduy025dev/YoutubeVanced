@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,24 +8,42 @@
     android:padding="5dp"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerInParent="true"/>
+
     <LinearLayout
+        android:id="@+id/linear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="5dp"
         android:weightSum="10">
 
         <EditText
             android:id="@+id/edtSearchVideo"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
             android:layout_weight="9.5"
+            android:background="@drawable/boder_search"
             android:hint="Search video"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:paddingStart="10dp"
             android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/btnSearch"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"
             android:layout_weight="0.5"
+            android:background="@drawable/boder_button"
             android:src="@drawable/ic_baseline_search_24" />
 
     </LinearLayout>
@@ -33,8 +51,10 @@
 
         <LinearLayout
             android:id="@+id/LinearList"
+            android:layout_below="@+id/linear"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
             android:orientation="vertical">
 
 
@@ -48,4 +68,4 @@
 
 
 
-</LinearLayout>
+</RelativeLayout>
