@@ -37,9 +37,17 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
+    //youtube dl
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.github.yausername.youtubedl-android:library:0.12.4'
+    implementation 'com.github.yausername.youtubedl-android:ffmpeg:0.12.4'
+
+    implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
+
+
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'com.writingminds:FFmpegAndroid:0.3.2'

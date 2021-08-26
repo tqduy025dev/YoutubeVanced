@@ -7,26 +7,18 @@ import android.content.Intent;
 
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.ImageView;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.AppWidgetTarget;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.tranquangduy.loadvideo.DownLoadImageTask;
 import com.tranquangduy.loadvideo.MainActivity2;
 import com.tranquangduy.loadvideo.R;
 import com.tranquangduy.model.Song;

@@ -12,6 +12,8 @@
     </queries>
 
     <application
+        android:extractNativeLibs="true"
+        android:requestLegacyExternalStorage="true"
         android:name="com.tranquangduy.pushnotification.PushNotification"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

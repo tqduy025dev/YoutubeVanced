@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="5dp"
+    android:padding="7dp"
     tools:context=".MainActivity2">
 
     <com.google.android.youtube.player.YouTubePlayerView
@@ -13,11 +12,42 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <ImageButton
+        android:id="@+id/btnDownload"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_download"
+        android:layout_below="@+id/youtubePlayer"/>
+
+
+    <TextView
+        android:id="@+id/tvStatusDownload"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/youtubePlayer"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="10dp"
+        android:textAlignment="textEnd"
+        android:text="0%"
+        android:textSize="20sp" />
+
+    <ProgressBar
+        android:id="@+id/progDownload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_marginTop="30dp"
+        android:paddingEnd="3dp"
+        android:paddingStart="3dp"
+        android:max="100"
+        android:layout_below="@id/youtubePlayer"/>
+
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:foregroundGravity="center"
+        android:layout_below="@+id/btnDownload"
         android:layout_height="wrap_content"/>
 
-
-</LinearLayout>
+</RelativeLayout>
