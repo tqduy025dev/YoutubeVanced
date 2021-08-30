@@ -32,6 +32,14 @@
         android:text="0%"
         android:textSize="20sp" />
 
+
+    <ProgressBar
+        android:id="@+id/proLoading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerVertical="true"/>
+
     <ProgressBar
         android:id="@+id/progDownload"
         android:layout_width="match_parent"
