@@ -15,7 +15,7 @@ public interface InterfaceAPI {
 
     String API = "https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=the%20weeknd&key=AIzaSyD8rO5MjZrxJhqHfS2Lub5l4KNX5FhQs7o";
 
-    Gson gson = new GsonBuilder().setDateFormat("đd-MM-yyyy HH:mm:ss").create();
+    Gson gson = new GsonBuilder().setDateFormat("dd-MM-yyyy HH:mm:ss").create();
 
     InterfaceAPI api = new Retrofit.Builder().baseUrl("https://youtube.googleapis.com/youtube/")
                             .addConverterFactory(GsonConverterFactory

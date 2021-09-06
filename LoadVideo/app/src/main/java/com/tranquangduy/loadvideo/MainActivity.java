@@ -17,6 +17,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerView;
 import com.tranquangduy.adapter.CustomAdapter;
 import com.tranquangduy.api_service.InterfaceAPI;
 import com.tranquangduy.model.Root;
@@ -29,7 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
     String API_KEY = "AIzaSyD8rO5MjZrxJhqHfS2Lub5l4KNX5FhQs7o";
     String API_KEY1 = "AIzaSyC-gfCdT68Q50VaItTKL_QqWgI-HsbnV8E";
 
@@ -45,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     private Root rootAPI = null;
     private final List<Root.Items> listIdVideo = new ArrayList<>();
     private CustomAdapter customAdapter;
-    private String videoPlaying = "";
 
 
     @Override
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         addView();
         addEvent();
+        txtSearch.setText("Tát nươc đầu đình!");
+
 
     }
 
@@ -89,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-        txtSearch.setText("tat nuoc dau dinh");
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void clickCallAPI() {
         String resultSearch = txtSearch.getText() + "";
-        InterfaceAPI.api.searchVideo(part, API_KEY1, maxResults, type, resultSearch).enqueue(new Callback<Root>() {
+        InterfaceAPI.api.searchVideo(part, API_KEY, maxResults, type, resultSearch).enqueue(new Callback<Root>() {
             @Override
             public void onResponse(Call<Root> call, Response<Root> response) {
                 if (response.isSuccessful()) {

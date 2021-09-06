@@ -1,61 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="7dp"
     tools:context=".MainActivity2">
 
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_container"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:background="#10000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.google.android.youtube.player.YouTubePlayerView
         android:id="@+id/youtubePlayer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="0dp"
+        android:background="#000"
+        app:layout_constraintBottom_toBottomOf="@+id/main_container"
+        app:layout_constraintStart_toStartOf="@+id/main_container"
+        app:layout_constraintTop_toTopOf="@+id/main_container" />
+
+
+    <ImageView
+        android:id="@+id/imgClose"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:alpha="0"
+        android:visibility="gone"
+        android:src="@drawable/ic_close"
+        app:layout_constraintBottom_toBottomOf="@+id/main_container"
+        app:layout_constraintEnd_toEndOf="@+id/main_container"
+        app:layout_constraintTop_toTopOf="@id/main_container" />
+
+    <ImageView
+        android:id="@+id/imgPlay"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="20dp"
+        android:alpha="0"
+        android:visibility="gone"
+        android:src="@drawable/ic_play"
+        app:layout_constraintBottom_toBottomOf="@id/imgClose"
+        app:layout_constraintEnd_toStartOf="@id/imgClose"
+        app:layout_constraintTop_toTopOf="@+id/imgClose" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="20dp"
+        android:alpha="0"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="hahahsdhfasdfasdfasdfasdfasdfasdfasdaaaaaaaaaaafasdfasd"
+        app:layout_constraintBottom_toBottomOf="@id/imgPlay"
+        app:layout_constraintEnd_toStartOf="@id/imgPlay"
+        app:layout_constraintStart_toEndOf="@+id/youtubePlayer"
+        app:layout_constraintTop_toTopOf="@+id/imgPlay" />
 
     <ImageButton
         android:id="@+id/btnDownload"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_marginTop="2dp"
+        android:layout_height="30dp"
+        android:scaleType="center"
         android:src="@drawable/ic_download"
-        android:layout_below="@+id/youtubePlayer"/>
+        android:elevation="2dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintEnd_toEndOf="@+id/main_container"
+        app:layout_constraintStart_toStartOf="@+id/main_container"
+        app:layout_constraintTop_toBottomOf="@+id/main_container" />
 
-
-    <TextView
-        android:id="@+id/tvStatusDownload"
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/youtubePlayer"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="10dp"
-        android:textAlignment="textEnd"
-        android:text="0%"
-        android:textSize="20sp" />
-
-
-    <ProgressBar
-        android:id="@+id/proLoading"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_centerVertical="true"/>
+        <TextView
+            android:id="@+id/tvStatusDownload"
+            android:layout_width="70dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:textAlignment="textEnd"
+            android:foregroundGravity="center"
+            android:textColor="#4EF406"
+            android:textStyle="bold"
+            android:layout_marginBottom="7dp"
+            android:elevation="2dp"
+            app:layout_constraintEnd_toEndOf="@+id/btnDownload"
+            app:layout_constraintBottom_toBottomOf="@+id/btnDownload"
+            app:layout_constraintTop_toTopOf="@+id/btnDownload"
+            android:textSize="20sp" />
 
     <ProgressBar
         android:id="@+id/progDownload"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_marginTop="30dp"
-        android:paddingEnd="3dp"
-        android:paddingStart="3dp"
         android:max="100"
-        android:layout_below="@id/youtubePlayer"/>
+        android:scaleY="6"
+        android:paddingStart="3dp"
+        android:paddingEnd="3dp"
+        app:layout_constraintStart_toStartOf="@+id/btnDownload"
+        app:layout_constraintBottom_toBottomOf="@+id/btnDownload"
+        app:layout_constraintEnd_toEndOf="@+id/btnDownload"
+        app:layout_constraintTop_toTopOf="@+id/btnDownload" />
 
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:foregroundGravity="center"
-        android:layout_below="@+id/btnDownload"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progDownload" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

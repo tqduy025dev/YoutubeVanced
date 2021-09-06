@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -13,15 +13,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_centerInParent="true"/>
 
     <LinearLayout
         android:id="@+id/linear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="5dp"
-        android:weightSum="10">
+        android:weightSum="10"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteY="5dp">
 
         <EditText
             android:id="@+id/edtSearchVideo"
@@ -49,23 +55,27 @@
     </LinearLayout>
 
 
-        <LinearLayout
-            android:id="@+id/LinearList"
-            android:layout_below="@+id/linear"
+    <LinearLayout
+        android:id="@+id/LinearList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@+id/linear"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linear">
+
+
+        <ListView
+            android:id="@+id/listViewPlayer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical">
+            android:layout_height="match_parent" />
 
 
-            <ListView
-                android:id="@+id/listViewPlayer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-
-        </LinearLayout>
+    </LinearLayout>
 
 
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,23 +2,15 @@ package com.tranquangduy.loadvideo;
 
 
 import android.Manifest;
-import android.app.DownloadManager;
-import android.app.TimePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.camera2.CameraCharacteristics;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
-import android.util.SparseArray;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -27,19 +19,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
 import com.tranquangduy.adapter.CustomAdapter;
+import com.tranquangduy.api_service.MyService;
 import com.tranquangduy.model.Root;
+import com.tranquangduy.model.Song;
 import com.yausername.ffmpeg.FFmpeg;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLException;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
+import com.yausername.youtubedl_android.mapper.VideoInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,16 +46,15 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     private ImageButton btnDownload;
     private TextView tvSttDownload;
     private ProgressBar progDownload;
-    private ProgressBar progLoading;
 
     private List<Root.Items> listId = new ArrayList<>();
     private String idVideo = "";
-    private String urlPath = "https://www.youtube.com/watch?v=";
+    private final String urlPath = "https://www.youtube.com/watch?v=";
     private String urlDownload = "";
-    private String newlink = "";
-    private CustomAdapter customAdapter;
-    String API_KEY1 = "AIzaSyC-gfCdT68Q50VaItTKL_QqWgI-HsbnV8E";
+    private final String API_KEY1 = "AIzaSyC-gfCdT68Q50VaItTKL_QqWgI-HsbnV8E";
 
+    private Thread thread;
+    private Runnable a;
     private long mLastClickTime = 0;
     private int t = 0;
 
@@ -73,9 +66,8 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
             if (msg.arg2 == -1) {
                 Toast.makeText(MainActivity2.this, "Download Thất Bại!", Toast.LENGTH_SHORT).show();
             }
-            if(msg.obj != null){
-                if(msg.obj.equals("done")){
-                    tvSttDownload.setText("");
+            if (msg.obj != null) {
+                if (msg.obj.equals("done")) {
                     progDownload.setProgress(0);
                     Toast.makeText(MainActivity2.this, "Download Thành Công !", Toast.LENGTH_SHORT).show();
                 }
@@ -83,22 +75,20 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         }
     };
 
-    private final DownloadProgressCallback callback = new DownloadProgressCallback() {
-        @Override
-        public void onProgressUpdate(float progress, long etaInSeconds) {
-            System.out.println(progress + "% (ETA " + etaInSeconds + " seconds)");
-            Message msg = mainHandler.obtainMessage();
-            msg.arg1 = (int) progress;
+    private final DownloadProgressCallback callback = (progress, etaInSeconds) -> {
+        System.out.println(progress + "% (ETA " + etaInSeconds + " seconds)");
+        Message msg = mainHandler.obtainMessage();
+        msg.arg1 = (int) progress;
 
-            if( ((int)progress) == 100){
-                t++;
-            }
-            if(t == 2 || t == 3){
-                msg.obj = "done";
-                t = 0;
-            }
-            mainHandler.sendMessage(msg);
+        if (((int) progress) == 100) {
+            t++;
         }
+        if (t == 3 || t == 2) {
+            msg.obj = "done";
+            t = 0;
+        }
+
+        mainHandler.sendMessage(msg);
     };
 
 
@@ -115,7 +105,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         listId = (List<Root.Items>) bundle.getSerializable("ListVideo");
         idVideo = bundle.getString("IDPlaying").trim();
 
-        customAdapter = new CustomAdapter(MainActivity2.this, R.layout.items_video, listId);
+        CustomAdapter customAdapter = new CustomAdapter(MainActivity2.this, R.layout.items_video, listId);
         listView.setAdapter(customAdapter);
 
         if (!idVideo.isEmpty() && listId.size() != 0) {
@@ -131,7 +121,6 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         btnDownload = findViewById(R.id.btnDownload);
         tvSttDownload = findViewById(R.id.tvStatusDownload);
         progDownload = findViewById(R.id.progDownload);
-        progLoading = findViewById(R.id.proLoading);
     }
 
     private void addEvent() {
@@ -147,13 +136,12 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
                 mLastClickTime = SystemClock.elapsedRealtime();
 
                 checkPermission();
-
             }
         });
     }
 
 
-    private void checkPermission(){
+    private void checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
                 String[] permission = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -182,7 +170,9 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
                     File youtubeDLDir = getDownloadLocation();
                     YoutubeDLRequest request = new YoutubeDLRequest(urlDownload);
+                    request.addOption("-f bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4");
                     request.addOption("-o", youtubeDLDir.getAbsolutePath() + "/%(title)s.%(ext)s");
+
 
 //                    YoutubeDL.getInstance().execute(request, (progress, etaInSeconds) -> {
 //                        System.out.println(progress + "% (ETA " + etaInSeconds + " seconds)");
@@ -192,7 +182,9 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 //                        callback.onProgressUpdate(progress, etaInSeconds);
 //                    });
 
+
                     YoutubeDL.getInstance().execute(request, callback);
+//
 
 
                 } catch (YoutubeDLException | InterruptedException e) {
@@ -207,7 +199,6 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         }).start();
 
     }
-
 
 
     @Override
@@ -234,6 +225,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+
         youTubePlayer.loadVideo(idVideo);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -246,15 +238,40 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
                     urlDownload = "";
                     urlDownload = urlPath.concat(idVideo);
 
-                    //start foreground
-//                    Intent intent = new Intent(MainActivity2.this, MyService.class);
-//                    Song song = new Song(items.snippet.title,items.snippet.thumbnails.high.url,1);
-//
-//                    Bundle bundle = new Bundle();
-//                    bundle.putSerializable("SongObj", song);
-//                    intent.putExtras(bundle);
-//
-//                    startService(intent);
+                    thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            try {
+
+
+                                YoutubeDL.getInstance().init(getApplication());
+                                FFmpeg.getInstance().init(getApplication());
+
+
+                                YoutubeDLRequest request = new YoutubeDLRequest(urlDownload);
+                                request.addOption("-f", "bestaudio");
+                                VideoInfo streamInfo = YoutubeDL.getInstance().getInfo(request);
+
+                                //start foreground
+                                Intent intent = new Intent(MainActivity2.this, MyService.class);
+                                Song song = new Song(items.snippet.title, items.snippet.thumbnails.high.url, streamInfo.getUrl());
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable("SongObj", song);
+                                intent.putExtras(bundle);
+
+                                startForegroundService(intent);
+
+
+                            } catch (YoutubeDLException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+                    thread.start();
+
+
 
                 }
 

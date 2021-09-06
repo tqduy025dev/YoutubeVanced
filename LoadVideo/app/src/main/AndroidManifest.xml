@@ -37,7 +37,7 @@
         </activity>
 
         <service android:name="com.tranquangduy.api_service.MyService"/>
-
+        <receiver android:name="com.tranquangduy.api_service.MyReciver"/>
 
     </application>
 

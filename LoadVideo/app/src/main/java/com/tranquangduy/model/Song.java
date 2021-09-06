@@ -5,16 +5,15 @@ import java.io.Serializable;
 public class Song implements Serializable {
     private String tittle;
     private String image;
-    private int resource;
+    private String url;
 
     public Song(){
-
     }
 
-    public Song(String tittle, String image, int resource) {
+    public Song(String tittle, String image, String url) {
         this.tittle = tittle;
         this.image = image;
-        this.resource = resource;
+        this.url = url;
     }
 
     public String getTittle() {
@@ -33,11 +32,11 @@ public class Song implements Serializable {
         this.image = image;
     }
 
-    public int getResource() {
-        return resource;
+    public String getUrl() {
+        return url;
     }
 
-    public void setResource(int resource) {
-        this.resource = resource;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
