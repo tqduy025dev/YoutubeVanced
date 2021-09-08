@@ -1,5 +1,6 @@
 package com.tranquangduy.api_service;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,47 +11,46 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
+import android.os.Looper;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestFutureTarget;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.tranquangduy.loadvideo.MainActivity2;
 import com.tranquangduy.loadvideo.R;
+import com.tranquangduy.model.Root;
 import com.tranquangduy.model.Song;
 
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import java.io.Serializable;
+import java.util.List;
 
 import static com.tranquangduy.pushnotification.PushNotification.CHANNEL_ID;
 
-public class MyService extends Service {
-    private MediaPlayer mediaPlayer;
-    private static final int ACTION_PAUSE = 1;
-    private static final int ACTION_RESUME = 2;
-    private static final int ACTION_CLEAR = 0;
+public class MyService extends Service{
+    public MediaPlayer mediaPlayer;
+    public static final int ACTION_CLEAR = 0;
+    public static final int ACTION_PAUSE = 1;
+    public static final int ACTION_RESUME = 2;
+    public static final int ACTION_START = 3;
+    public static final int ACTION_LOOP = 4;
+    public static final int ACTION_LOOPPED = 5;
     private static final int REQUEST_CODE = 0;
     private boolean isPlaying = false;
-    private boolean isActive = false;
     private Song mSong;
+    private List<Root.Items> listId;
+    private String IDPlaying, Title, ChannelTitle;
 
     @Override
     public void onCreate() {
@@ -59,7 +59,7 @@ public class MyService extends Service {
         mediaPlayer.setAudioAttributes(
                 new AudioAttributes
                         .Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                         .build());
     }
 
@@ -73,7 +73,13 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
-            Song song = (Song) bundle.get("SongObj");
+            Song song = (Song) bundle.get("obj_song");
+
+            listId = (List<Root.Items>) bundle.get("list_video");
+            IDPlaying = bundle.getString("id_playing");
+            Title = bundle.getString("title");
+            ChannelTitle = bundle.getString("channel_title");
+
 
             if (song != null) {
                 mSong = song;
@@ -96,13 +102,18 @@ public class MyService extends Service {
             case ACTION_PAUSE:
                 pause();
                 break;
-
             case ACTION_RESUME:
                 resume();
                 break;
-
             case ACTION_CLEAR:
                 stopSelf();
+                sendActionToActivity(ACTION_CLEAR);
+                break;
+            case ACTION_LOOP:
+                mediaPlayer.setLooping(true);
+                break;
+            case ACTION_LOOPPED:
+                mediaPlayer.setLooping(false);
                 break;
         }
     }
@@ -113,6 +124,7 @@ public class MyService extends Service {
             mediaPlayer.start();
             isPlaying = true;
             sendNotification(mSong);
+            sendActionToActivity(ACTION_RESUME);
         }
     }
 
@@ -121,35 +133,37 @@ public class MyService extends Service {
             mediaPlayer.pause();
             isPlaying = false;
             sendNotification(mSong);
+            sendActionToActivity(ACTION_PAUSE);
         }
     }
+    private boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (MyService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 
     private void starMusic(Song song) {
         try {
-            if (!isPlaying) {
-                mediaPlayer.setDataSource(song.getUrl());
-                mediaPlayer.prepare();
-                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        mp.start();
-                        isPlaying = true;
-                    }
-                });
-            } else {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(song.getUrl());
-                mediaPlayer.prepare();
-                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        mp.start();
-                        isPlaying = true;
-                    }
-                });
-            }
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(song.getUrl());
+            mediaPlayer.prepare();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mp.start();
+                    isPlaying = true;
+                }
+            });
             isPlaying = true;
+
+
+            sendActionToActivity(ACTION_START);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,7 +174,18 @@ public class MyService extends Service {
 
     private void sendNotification(Song song) {
         Intent intent = new Intent(this, MainActivity2.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("ListVideo", (Serializable) listId);
+        bundle.putString("IDPlaying", IDPlaying);
+        bundle.putString("TitleVideo", Title);
+        bundle.putString("ChanelTitle", ChannelTitle);
+        intent.putExtra("BUNDLE", bundle);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if(listId == null || listId.size() == 0){
+            pendingIntent = null;
+        }
+
 
         RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
         remoteViews.setTextViewText(R.id.tvSong, song.getTittle());
@@ -215,6 +240,18 @@ public class MyService extends Service {
     }
 
 
+    private void sendActionToActivity(int action){
+        Intent intent = new Intent("send_data_to_activity");
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("status_player", isPlaying);
+        bundle.putInt("action_music", action);
+
+        intent.putExtras(bundle);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -223,4 +260,5 @@ public class MyService extends Service {
             mediaPlayer = null;
         }
     }
+
 }

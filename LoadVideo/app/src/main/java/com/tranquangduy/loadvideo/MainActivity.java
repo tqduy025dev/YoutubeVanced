@@ -22,6 +22,7 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
 import com.tranquangduy.adapter.CustomAdapter;
 import com.tranquangduy.api_service.InterfaceAPI;
+import com.tranquangduy.api_service.MyService;
 import com.tranquangduy.model.Root;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity{
-    String API_KEY = "AIzaSyD8rO5MjZrxJhqHfS2Lub5l4KNX5FhQs7o";
+    String API_KEY = "AIzaSyCraYEFBoqLhLW6OWFLEinmujtise_qFv4";
     String API_KEY1 = "AIzaSyC-gfCdT68Q50VaItTKL_QqWgI-HsbnV8E";
 
     private static final String part = "snippet";
@@ -115,6 +116,8 @@ public class MainActivity extends AppCompatActivity{
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("ListVideo", (Serializable) listIdVideo);
                 bundle.putString("IDPlaying", temp.id.getVideoId());
+                bundle.putString("TitleVideo", temp.snippet.title);
+                bundle.putString("ChanelTitle", temp.snippet.channelTitle);
                 intent.putExtra("BUNDLE", bundle);
                 startActivity(intent);
 
@@ -141,6 +144,8 @@ public class MainActivity extends AppCompatActivity{
                     }
                 } else {
                     Toast.makeText(MainActivity.this, "Reponse Fail", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                 }
             }
             @Override
@@ -153,4 +158,8 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

@@ -2,23 +2,33 @@ package com.tranquangduy.loadvideo;
 
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -36,40 +46,64 @@ import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.mapper.VideoInfo;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
-    private YouTubePlayerView youTubePlayerView;
+public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener{
     private ListView listView;
     private ImageButton btnDownload;
-    private TextView tvSttDownload;
-    private ProgressBar progDownload;
+    private ProgressBar progDownload, progLoading;
+    private TextView tvTitle, tvChanelTitle;
+    private ImageView  imgLoop, imgPlayBackground;
+    private YouTubePlayerView youTubePlayerView;
+    private YouTubePlayer tubePlayer;
 
+    private final String API_KEY = "AIzaSyCraYEFBoqLhLW6OWFLEinmujtise_qFv4";
     private List<Root.Items> listId = new ArrayList<>();
-    private String idVideo = "";
+    private String idVideo;
+    private String titleVideo;
+    private String chanelTitle;
     private final String urlPath = "https://www.youtube.com/watch?v=";
     private String urlDownload = "";
-    private final String API_KEY1 = "AIzaSyC-gfCdT68Q50VaItTKL_QqWgI-HsbnV8E";
 
-    private Thread thread;
-    private Runnable a;
     private long mLastClickTime = 0;
     private int t = 0;
+    private boolean checkLoop = false;
+    private boolean isPlaying = false;
 
-    private Handler mainHandler = new Handler() {
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            if (bundle == null) {
+                return;
+            }
+
+            isPlaying = bundle.getBoolean("status_player");
+            int actionMusic = bundle.getInt("action_music");
+
+            handleLayoutMusic(actionMusic);
+
+        }
+    };
+
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            tvSttDownload.setText(msg.arg1 + "%");
             progDownload.setProgress(msg.arg1);
+            progDownload.setVisibility(View.VISIBLE);
             if (msg.arg2 == -1) {
-                Toast.makeText(MainActivity2.this, "Download Thất Bại!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity2.this, "Lỗi!!! Vui lòng thử lại sau!", Toast.LENGTH_SHORT).show();
+                progDownload.setVisibility(View.GONE);
             }
             if (msg.obj != null) {
                 if (msg.obj.equals("done")) {
                     progDownload.setProgress(0);
-                    Toast.makeText(MainActivity2.this, "Download Thành Công !", Toast.LENGTH_SHORT).show();
+                    progDownload.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity2.this, "Download thành công !", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -99,28 +133,103 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
         linkView();
         addEvent();
+        loadList();
+        loadVideoFirst();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("send_data_to_activity"));
+
+    }
+
+
+
+    private void handleLayoutMusic(int action) {
+        switch (action) {
+            case MyService.ACTION_CLEAR:
+                break;
+            case MyService.ACTION_PAUSE:
+                setStatusPlayOrPause();
+                break;
+            case MyService.ACTION_RESUME:
+                setStatusPlayOrPause();
+                break;
+            case MyService.ACTION_START:
+                setStatusPlayOrPause();
+                break;
+
+        }
+
+
+        imgLoop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!checkLoop) {
+                    imgLoop.setImageResource(R.drawable.ic_loopped);
+                    checkLoop = true;
+                    sendActionToService(MyService.ACTION_LOOP);
+                } else {
+                    imgLoop.setImageResource(R.drawable.ic_loop);
+                    checkLoop = false;
+                    sendActionToService(MyService.ACTION_LOOPPED);
+                }
+            }
+        });
+
+
+    }
+
+
+    private void setStatusPlayOrPause() {
+        if (isPlaying) {
+            tubePlayer.pause();
+        }
+    }
+
+    private void sendActionToService(int action) {
+        Intent intent = new Intent(this, MyService.class);
+        intent.putExtra("action_music_broadcast", action);
+        startForegroundService(intent);
+    }
+
+
+    private void loadVideoFirst() {
+        if (idVideo != null && listId.size() != 0) {
+            urlDownload = urlPath.concat(idVideo);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    youTubePlayerView.initialize(API_KEY,MainActivity2.this);
+
+                }
+            });
+        }
+    }
+
+    private void loadList() {
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("BUNDLE");
         listId = (List<Root.Items>) bundle.getSerializable("ListVideo");
-        idVideo = bundle.getString("IDPlaying").trim();
-
+        idVideo = bundle.getString("IDPlaying");
+        titleVideo  = bundle.getString("TitleVideo");
+        chanelTitle = bundle.getString("ChanelTitle");
+        tvChanelTitle.setText(chanelTitle);
+        tvTitle.setText(titleVideo);
         CustomAdapter customAdapter = new CustomAdapter(MainActivity2.this, R.layout.items_video, listId);
         listView.setAdapter(customAdapter);
-
-        if (!idVideo.isEmpty() && listId.size() != 0) {
-            youTubePlayerView.initialize(API_KEY1, MainActivity2.this);
-            urlDownload = urlPath.concat(idVideo);
-        }
-
     }
 
     private void linkView() {
-        youTubePlayerView = findViewById(R.id.youtubePlayer);
         listView = findViewById(R.id.listView);
         btnDownload = findViewById(R.id.btnDownload);
-        tvSttDownload = findViewById(R.id.tvStatusDownload);
         progDownload = findViewById(R.id.progDownload);
+        tvTitle = findViewById(R.id.tvTitle);
+        tvChanelTitle = findViewById(R.id.tvChanelTitle);
+        imgLoop = findViewById(R.id.imgLoop);
+        youTubePlayerView = findViewById(R.id.youtubePlayerView);
+        imgPlayBackground = findViewById(R.id.imgPlayBackground);
+        progLoading = findViewById(R.id.progLoading);
     }
 
     private void addEvent() {
@@ -138,6 +247,46 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
                 checkPermission();
             }
         });
+
+
+        imgPlayBackground.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                runOnService();
+            }
+        });
+
+
+    }
+
+    private void runOnService() {
+        try {
+            YoutubeDL.getInstance().init(getApplication());
+            FFmpeg.getInstance().init(getApplication());
+
+            YoutubeDLRequest request = new YoutubeDLRequest(urlDownload);
+            request.addOption("-f", "best");
+            VideoInfo streamInfo = YoutubeDL.getInstance().getInfo(request);
+
+            Intent intent = new Intent(MainActivity2.this, MyService.class);
+            Song song = new Song(streamInfo.getTitle(), streamInfo.getThumbnail(), streamInfo.getUrl());
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("obj_song", song);
+            bundle.putSerializable("list_video", (Serializable) listId);
+            bundle.putString("id_playing",idVideo );
+            bundle.putString("title",titleVideo);
+            bundle.putString("channel_title", chanelTitle);
+            intent.putExtras(bundle);
+            startService(intent);
+
+
+        } catch (InterruptedException | YoutubeDLException e) {
+            e.printStackTrace();
+            Message msg = mainHandler.obtainMessage();
+            msg.arg2 = -1;
+            mainHandler.sendMessage(msg);
+        }
+
     }
 
 
@@ -159,8 +308,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     }
 
     private void startDownload() {
-
-        new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -173,18 +321,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
                     request.addOption("-f bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4");
                     request.addOption("-o", youtubeDLDir.getAbsolutePath() + "/%(title)s.%(ext)s");
 
-
-//                    YoutubeDL.getInstance().execute(request, (progress, etaInSeconds) -> {
-//                        System.out.println(progress + "% (ETA " + etaInSeconds + " seconds)");
-//                        Message msg = mainHandler.obtainMessage();
-//                        msg.arg1 = (int) progress;
-//                        mainHandler.sendMessage(msg);
-//                        callback.onProgressUpdate(progress, etaInSeconds);
-//                    });
-
-
                     YoutubeDL.getInstance().execute(request, callback);
-//
 
 
                 } catch (YoutubeDLException | InterruptedException e) {
@@ -196,10 +333,10 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
 
             }
-        }).start();
+        });
+        thread.start();
 
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -224,55 +361,60 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
 
     @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+    protected void onDestroy() {
+        if (tubePlayer != null) {
+            tubePlayer.release();
+        }
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+    }
 
+    @Override
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         youTubePlayer.loadVideo(idVideo);
+        tubePlayer = youTubePlayer;
+        progLoading.setVisibility(View.GONE);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        youTubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
+            @Override
+            public void onPlaying() {
+                sendActionToService(MyService.ACTION_PAUSE);
+            }
+
+            @Override
+            public void onPaused() {
+
+            }
+
+            @Override
+            public void onStopped() {
+
+            }
+
+            @Override
+            public void onBuffering(boolean b) {
+
+            }
+
+            @Override
+            public void onSeekTo(int i) {
+
+            }
+        });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Root.Items items = listId.get(position);
                 if (!idVideo.equals(items.id.getVideoId())) {
-                    youTubePlayer.loadVideo(items.id.getVideoId());
                     idVideo = items.id.getVideoId();
+                    youTubePlayer.loadVideo(idVideo);
 
+                    titleVideo = "";
+                    chanelTitle = "";
                     urlDownload = "";
+                    titleVideo = items.snippet.title;
+                    chanelTitle = items.snippet.channelTitle;
                     urlDownload = urlPath.concat(idVideo);
-
-                    thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            try {
-
-
-                                YoutubeDL.getInstance().init(getApplication());
-                                FFmpeg.getInstance().init(getApplication());
-
-
-                                YoutubeDLRequest request = new YoutubeDLRequest(urlDownload);
-                                request.addOption("-f", "bestaudio");
-                                VideoInfo streamInfo = YoutubeDL.getInstance().getInfo(request);
-
-                                //start foreground
-                                Intent intent = new Intent(MainActivity2.this, MyService.class);
-                                Song song = new Song(items.snippet.title, items.snippet.thumbnails.high.url, streamInfo.getUrl());
-                                Bundle bundle = new Bundle();
-                                bundle.putSerializable("SongObj", song);
-                                intent.putExtras(bundle);
-
-                                startForegroundService(intent);
-
-
-                            } catch (YoutubeDLException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-
-                    thread.start();
-
-
-
                 }
 
             }
@@ -281,9 +423,8 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-        Toast.makeText(this, "Init fail", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Init Fail!", Toast.LENGTH_SHORT).show();
     }
-
 
 }
 
