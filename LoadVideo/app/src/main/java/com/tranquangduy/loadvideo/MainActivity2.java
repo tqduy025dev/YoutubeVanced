@@ -51,12 +51,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener{
+public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
     private ListView listView;
     private ImageButton btnDownload;
     private ProgressBar progDownload, progLoading;
     private TextView tvTitle, tvChanelTitle;
-    private ImageView  imgLoop, imgPlayBackground;
+    private ImageView imgLoop, imgPlayBackground;
     private YouTubePlayerView youTubePlayerView;
     private YouTubePlayer tubePlayer;
 
@@ -141,7 +141,6 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     }
 
 
-
     private void handleLayoutMusic(int action) {
         switch (action) {
             case MyService.ACTION_CLEAR:
@@ -162,15 +161,19 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         imgLoop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!checkLoop) {
-                    imgLoop.setImageResource(R.drawable.ic_loopped);
-                    checkLoop = true;
-                    sendActionToService(MyService.ACTION_LOOP);
-                } else {
-                    imgLoop.setImageResource(R.drawable.ic_loop);
-                    checkLoop = false;
-                    sendActionToService(MyService.ACTION_LOOPPED);
+                if (isPlaying) {
+                    if (!checkLoop) {
+                        imgLoop.setImageResource(R.drawable.ic_loopped);
+                        checkLoop = true;
+                        sendActionToService(MyService.ACTION_LOOP);
+
+                    } else {
+                        imgLoop.setImageResource(R.drawable.ic_loop);
+                        checkLoop = false;
+                        sendActionToService(MyService.ACTION_LOOPPED);
+                    }
                 }
+
             }
         });
 
@@ -182,6 +185,34 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         if (isPlaying) {
             tubePlayer.pause();
         }
+        tubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
+            @Override
+            public void onPlaying() {
+                if (isPlaying) {
+                    sendActionToService(MyService.ACTION_PAUSE);
+                }
+            }
+
+            @Override
+            public void onPaused() {
+
+            }
+
+            @Override
+            public void onStopped() {
+
+            }
+
+            @Override
+            public void onBuffering(boolean b) {
+
+            }
+
+            @Override
+            public void onSeekTo(int i) {
+
+            }
+        });
     }
 
     private void sendActionToService(int action) {
@@ -194,14 +225,8 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     private void loadVideoFirst() {
         if (idVideo != null && listId.size() != 0) {
             urlDownload = urlPath.concat(idVideo);
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    youTubePlayerView.initialize(API_KEY,MainActivity2.this);
-
-                }
-            });
+            youTubePlayerView.initialize(API_KEY, MainActivity2.this);
+            ;
         }
     }
 
@@ -212,7 +237,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         Bundle bundle = intent.getBundleExtra("BUNDLE");
         listId = (List<Root.Items>) bundle.getSerializable("ListVideo");
         idVideo = bundle.getString("IDPlaying");
-        titleVideo  = bundle.getString("TitleVideo");
+        titleVideo = bundle.getString("TitleVideo");
         chanelTitle = bundle.getString("ChanelTitle");
         tvChanelTitle.setText(chanelTitle);
         tvTitle.setText(titleVideo);
@@ -252,7 +277,12 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         imgPlayBackground.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runOnService();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        runOnService();
+                    }
+                });
             }
         });
 
@@ -273,11 +303,11 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
             Bundle bundle = new Bundle();
             bundle.putSerializable("obj_song", song);
             bundle.putSerializable("list_video", (Serializable) listId);
-            bundle.putString("id_playing",idVideo );
-            bundle.putString("title",titleVideo);
+            bundle.putString("id_playing", idVideo);
+            bundle.putString("title", titleVideo);
             bundle.putString("channel_title", chanelTitle);
             intent.putExtras(bundle);
-            startService(intent);
+            startForegroundService(intent);
 
 
         } catch (InterruptedException | YoutubeDLException e) {
@@ -308,7 +338,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     }
 
     private void startDownload() {
-        Thread thread = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -333,8 +363,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
 
             }
-        });
-        thread.start();
+        }).start();
 
     }
 
@@ -375,32 +404,6 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         tubePlayer = youTubePlayer;
         progLoading.setVisibility(View.GONE);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        youTubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
-            @Override
-            public void onPlaying() {
-                sendActionToService(MyService.ACTION_PAUSE);
-            }
-
-            @Override
-            public void onPaused() {
-
-            }
-
-            @Override
-            public void onStopped() {
-
-            }
-
-            @Override
-            public void onBuffering(boolean b) {
-
-            }
-
-            @Override
-            public void onSeekTo(int i) {
-
-            }
-        });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

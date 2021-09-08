@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity{
 
         addView();
         addEvent();
-        txtSearch.setText("Tát nươc đầu đình!");
 
 
     }

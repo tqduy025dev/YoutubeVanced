@@ -61,6 +61,7 @@ public class MyService extends Service{
                         .Builder()
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                         .build());
+
     }
 
     @Nullable
@@ -136,16 +137,6 @@ public class MyService extends Service{
             sendActionToActivity(ACTION_PAUSE);
         }
     }
-    private boolean isMyServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (MyService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
 
     private void starMusic(Song song) {
@@ -181,10 +172,6 @@ public class MyService extends Service{
         bundle.putString("ChanelTitle", ChannelTitle);
         intent.putExtra("BUNDLE", bundle);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        if(listId == null || listId.size() == 0){
-            pendingIntent = null;
-        }
 
 
         RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
@@ -223,7 +210,7 @@ public class MyService extends Service{
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(null)
                 .setCustomContentView(remoteViews)
                 .setSound(null)
                 .build();
