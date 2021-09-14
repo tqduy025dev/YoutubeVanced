@@ -60,7 +60,6 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     private YouTubePlayerView youTubePlayerView;
     private YouTubePlayer tubePlayer;
 
-    private final String API_KEY = "AIzaSyCraYEFBoqLhLW6OWFLEinmujtise_qFv4";
     private List<Root.Items> listId = new ArrayList<>();
     private String idVideo;
     private String titleVideo;
@@ -73,7 +72,8 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     private boolean checkLoop = false;
     private boolean isPlaying = false;
 
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
@@ -225,8 +225,7 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
     private void loadVideoFirst() {
         if (idVideo != null && listId.size() != 0) {
             urlDownload = urlPath.concat(idVideo);
-            youTubePlayerView.initialize(API_KEY, MainActivity2.this);
-            ;
+            youTubePlayerView.initialize(String.valueOf(R.string.text_key), MainActivity2.this);
         }
     }
 
@@ -277,12 +276,16 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
         imgPlayBackground.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        runOnService();
-                    }
-                });
+                try {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            runOnService();
+                        }
+                    }).start();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -400,7 +403,9 @@ public class MainActivity2 extends YouTubeBaseActivity implements YouTubePlayer.
 
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-        youTubePlayer.loadVideo(idVideo);
+        if(!isPlaying){
+            youTubePlayer.loadVideo(idVideo);
+        }
         tubePlayer = youTubePlayer;
         progLoading.setVisibility(View.GONE);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);

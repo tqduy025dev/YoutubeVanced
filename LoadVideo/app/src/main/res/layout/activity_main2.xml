@@ -10,7 +10,7 @@
     <com.google.android.youtube.player.YouTubePlayerView
         android:id="@+id/youtubePlayerView"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"/>
 
     <ProgressBar
@@ -18,6 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -81,9 +82,9 @@
             android:layout_height="30dp"
             android:layout_marginTop="4dp"
             android:layout_alignParentTop="true"
-            android:layout_toStartOf="@+id/imgLoop"
-            android:layout_toEndOf="@id/btnDownload"
+            android:layout_centerHorizontal="true"
             android:elevation="2dp"
+            android:background="?android:attr/selectableItemBackground"
             android:src="@drawable/ic_play_to_background" />
 
         <ImageView
@@ -93,6 +94,7 @@
             android:layout_marginTop="3dp"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="10dp"
+            android:background="?android:attr/selectableItemBackground"
             android:src="@drawable/ic_loop" />
 
 

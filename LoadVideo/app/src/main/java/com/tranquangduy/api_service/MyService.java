@@ -152,8 +152,6 @@ public class MyService extends Service{
                 }
             });
             isPlaying = true;
-
-
             sendActionToActivity(ACTION_START);
 
         } catch (IOException e) {
@@ -172,6 +170,7 @@ public class MyService extends Service{
         bundle.putString("ChanelTitle", ChannelTitle);
         intent.putExtra("BUNDLE", bundle);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
 
         RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
@@ -210,7 +209,7 @@ public class MyService extends Service{
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentIntent(null)
+                .setContentIntent(listId != null ? pendingIntent : null)
                 .setCustomContentView(remoteViews)
                 .setSound(null)
                 .build();
